@@ -4,15 +4,17 @@ import { emit } from "./componentEmit";
 import { initProps } from "./componentProps";
 import { publicInstanceProxyHandlers } from "./componentPublicInstance";
 
-export function createComponentInstance(vnode) {
+export function createComponentInstance(vnode, parent) {
   const component = {
     vnode,
     type: vnode.type,
     setupState: {},
     props: {},
-    emit: ()=>{}
+    provides: parent ? parent.provides : {},
+    parent,
+    emit: () => {},
   };
-  component.emit = emit.bind(null,component) as any
+  component.emit = emit.bind(null, component) as any;
   return component;
 }
 
@@ -30,9 +32,11 @@ function setupStatefulComponent(instance: any) {
   instance.proxy = new Proxy({ _: instance }, publicInstanceProxyHandlers);
   const { setup } = component;
   if (setup) {
-    const setupResult = setup(shallowReadonly(instance.props),{
-      emit:instance.emit
+    setCurrentInstance(instance);
+    const setupResult = setup(shallowReadonly(instance.props), {
+      emit: instance.emit,
     });
+    setCurrentInstance(null);
     handleSetupResult(instance, setupResult);
   }
 }
@@ -50,4 +54,13 @@ function finishComponentSetup(instance: any) {
   if (component.render) {
     instance.render = component.render;
   }
+}
+
+let currentInstance = null;
+export function getCurrentInstance() {
+  return currentInstance;
+}
+
+export function setCurrentInstance(instance) {
+  currentInstance = instance;
 }
