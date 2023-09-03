@@ -6,6 +6,8 @@ import {
   ref,
   reactive,
   isProxy,
+  getCurrentInstance,
+  nextTick,
 } from "../../lib/guide-mini-vue.esm.js";
 window.self = null;
 const One = {
@@ -44,24 +46,25 @@ const Two = {
   },
 };
 const oldC = [
-  h("div", {}, "A"),
+  h("div", { key: "A" }, "A"),
   h("div", {}, "B"),
-  h("div", {}, "C"),
-  h("div", {}, "D"),
-  h("div", {}, "K"),
-  h("div", {}, "M"),
-  h("div", {}, "F"),
-  h("div", {}, "G"),
+  h("div", { key: "C" }, "C"),
+  h("div", { key: "K" }, "K"),
+  // h("div", { key: "M" }, "M"),
+  // h("div", { key: "D" }, "D"),
+  // h("div", { key: "F" }, "F"),
+  // h("div", { key: "G" }, "G"),
 ];
 // const oldC = "old";
 // const newC = "new text";
 const newC = [
-  h("div", {}, "A"),
-  h("div", {}, "B"),
-  h("div", {}, "E"),
-  h("div", {}, "C"),
-  h("div", {}, "F"),
-  h("div", {}, "G"),
+  h("div", { key: "A" }, "A"),
+  h("div", { key: "C", id: "C" }, "C"),
+  h("div", { id: "B" }, "B"),
+  h("div", { key: "K" }, "K"),
+  // h("div", { key: "D" }, "D"),
+  // h("div", { key: "F" }, "F"),
+  // h("div", { key: "G" }, "G"),
 ];
 const Three = {
   name: "Three",
@@ -83,20 +86,22 @@ export const App = {
     window.self = this;
     return h("div", { id: "root", ...this.prop }, [
       h("button", { onClick: this.add }, `count: ${this.count}`),
-      h(Three),
+      // h(Three),
     ]);
   },
   setup() {
+    const instance = getCurrentInstance();
     let count = ref(1);
     const prop = ref({
       baz: "baz",
       index: 1,
     });
-    const obj = reactive({
-      foo: 1,
-    });
-    const add = () => {
-      count.value++;
+    const add = async () => {
+      for (let i = 0; i < 10; i++) {
+        count.value++;
+      }
+      await nextTick();
+      console.log(instance);
     };
     return {
       count,
